@@ -1,105 +1,102 @@
-# Cheatsheet Keras
 
-## Ejemplo:
 ```python
 import keras
-from keras import layers
 
-# 1. Definir la arquitectura del modelo
+# 1. Define the structure of model
 model = keras.Sequential([
     layers.Input(shape=(784,)),          
     layers.Dense(128, activation="relu"),
-    layers.Dropout(0.2), # Esto evita el overfitting
+    layers.Dropout(0.2),
     layers.Dense(10, activation="softmax") 
 ])
 
-# 2. Compilar el modelo
+# 2. Compile the model
 model.compile(
     optimizer="adam",
     loss="sparse_categorical_crossentropy",
     metrics=["accuracy"]
 )
 
-# 3. Entrenar el modelo
-# x_train: datos de entrenamiento, y_train: etiquetas de entrenamiento
+# 3. Train the model
+# x_train: training data, y_train: training labels
 model.fit(
     x_train,
     y_train,
     batch_size=32,
     epochs=10,
-    validation_split=0.2 # Usa el 20% de los datos para validación
+    validation_split=0.2 # Use 20% of the data for validation
 )
 
-# 4. Evaluar el modelo
-# x_test: datos de prueba, y_test: etiquetas de prueba
+# 4. Evaluate the model
+# x_test: test data, y_test: test labels
 loss, accuracy = model.evaluate(x_test, y_test)
-print(f"Precisión en el conjunto de prueba: {accuracy:.4f}")
+print(f"Accuracy on the test set: {accuracy:.4f}")
 
-# 5. Realizar predicciones
+# 5. Make predictions
 predictions = model.predict(x_new_data)
 ```
 
 ---
-## Guía de Capas (`keras.layers`)
+## Layers Guide(`keras.layers`)
+Layers are the building blocks of your network. Here are the most important ones and when to use them.
 
-Las capas son los bloques de construcción de tu red. Aquí están las más importantes y cuándo usarlas.
+### Essential Layers (For all model types)
 
-### Capas Esenciales (Para todo tipo de modelo)
-
-| Capa | Qué Hace | Cuándo Usarla | Parámetros Clave |
+| layer | What It Does | When to Use It | Key Parameters |
 | :--- | :--- | :--- | :--- |
-| **`Input`** | Define la forma de los datos de entrada. | **Siempre** como la primera capa del modelo. | `shape=(...)` |
-| **`Dense`** | Capa neuronal estándar, totalmente conectada. | Capa base para la mayoría de tareas. Ideal para capas de salida y clasificación. | `units` (nº de neuronas), `activation` |
-| **`Dropout`** | "Apaga" neuronas aleatoriamente durante el entrenamiento. | Para **reducir el sobreajuste (overfitting)**. Se suele poner después de capas densas o convolucionales. | `rate` (ej: 0.5 para apagar el 50%) |
-| **`Flatten`** | Aplana los datos de múltiples dimensiones a un vector 1D. | Para conectar capas convolucionales con capas densas. (ej: de `(28, 28, 1)` a `(784,)`) | N/A |
+| **`Input`** | Defines the shape of the input data. | **Always** as the first layer of the model. | `shape=(...)` |
+| **`Dense`** | Standard fully connected neural layer. | Base layer for most tasks. Ideal for output and classification layers. | `units` (number of neurons), `activation` |
+| **`Dropout`** | Randomly "turns off" neurons during training. | To **reduce overfitting**. Usually placed after dense or convolutional layers. | `rate` (e.g., 0.5 to turn off 50%) |
+| **`Flatten`** | Flattens multi-dimensional data to 1D vector. | To connect convolutional layers to dense layers. (e.g., from `(28, 28, 1)` to `(784,)`) | N/A |
 
-### Capas Convolucionales (Para Visión por Computadora)
+### Convolutional Layers (For Computer Vision)
 
-| Capa | Qué Hace | Cuándo Usarla | Parámetros Clave |
+| layer | What It Does | When to Use It | Key Parameters |
 | :--- | :--- | :--- | :--- |
-| **`Conv2D`** | Detecta patrones locales (bordes, texturas) en imágenes. | El **corazón de las CNNs** para cualquier tarea de visión por computadora. | `filters`, `kernel_size`, `activation` |
-| **`MaxPooling2D`**| Reduce el tamaño de la imagen (downsampling) tomando el valor máximo. | Después de las capas `Conv2D` para reducir la carga computacional y hacer el modelo más robusto. | `pool_size` (ej: `(2, 2)`) |
-| **`GlobalAveragePooling2D`** | Reduce cada mapa de características a un solo número (su promedio). | Alternativa moderna a `Flatten` para conectar capas convolucionales a la capa de salida `Dense`. Ayuda a prevenir el sobreajuste. | N/A |
+| **`Conv2D`** | Detects local patterns (edges, textures) in images. | The **core of CNNs** for any computer vision task. | `filters`, `kernel_size`, `activation` |
+| **`MaxPooling2D`**| Reduces the image size (downsampling) by taking the maximum value. | After `Conv2D` layers to reduce computational load and make the model more robust. | `pool_size` (e.g., `(2, 2)`) |
+| **`GlobalAveragePooling2D`** | Reduces each feature map to a single number (its average). | Modern alternative to `Flatten` to connect convolutional layers to the output `Dense` layer. Helps prevent overfitting. | N/A |
 
 ### Capas Recurrentes (Para Datos Secuenciales: Texto, Series Temporales)
 
-| Capa | Qué Hace | Cuándo Usarla | Parámetros Clave |
+| Layer | What It Does | When to Use It | Key Parameters |
 | :--- | :--- | :--- | :--- |
-| **`Embedding`** | Convierte enteros (ej: índices de palabras) en vectores densos de tamaño fijo. | **Siempre** como primera capa en modelos de Procesamiento de Lenguaje Natural (NLP). | `input_dim` (tamaño del vocabulario), `output_dim` (tamaño del vector) |
-| **`LSTM`** | Red Recurrente avanzada, capaz de aprender dependencias a largo plazo. | El estándar para la mayoría de tareas con secuencias (NLP, series temporales). Resuelve el problema de desvanecimiento de gradiente. | `units` (nº de neuronas) |
-| **`GRU`** | Similar a LSTM pero más simple y computacionalmente más rápida. | Buena alternativa a `LSTM`, especialmente si la velocidad de entrenamiento es una prioridad. | `units` (nº de neuronas) |
-| **`SimpleRNN`**| La capa recurrente más básica. | Para aprender secuencias muy cortas o con fines educativos. En la práctica, `LSTM` o `GRU` son casi siempre mejores. | `units` (nº de neuronas) |
+| **`Embedding`** | Converts integers (e.g., word indices) into dense fixed-size vectors. | **Always** as the first layer in Natural Language Processing (NLP) models. | `input_dim` (vocabulary size), `output_dim` (vector size) |
+| **`LSTM`** | Advanced recurrent network, capable of learning long-term dependencies. | The standard for most sequence tasks (NLP, time series). Solves the vanishing gradient problem. | `units` (number of neurons) |
+| **`GRU`** | Similar to LSTM but simpler and computationally faster. | Good alternative to `LSTM`, especially if training speed is a priority. | `units` (number of neurons) |
+| **`SimpleRNN`**| The most basic recurrent layer. | For learning very short sequences or educational purposes. In practice, `LSTM` or `GRU` are almost always better. | `units` (number of neurons) |
 
 ### Funciones de Activación (`activation=`)
 
-Se usan como parámetro en muchas capas para introducir no-linealidad.
+Used as a parameter in many layers to introduce non-linearity.
 
-*   **`"relu"`**: La más popular para capas ocultas. Rápida y eficiente.
-*   **`"sigmoid"`**: Comprime los valores entre 0 y 1. Ideal para la capa de salida en **clasificación binaria**.
-*   **`"softmax"`**: Convierte las salidas en un vector de probabilidades que suma 1. Ideal para la capa de salida en **clasificación multiclase**.
-*   **`"tanh"`**: Comprime los valores entre -1 y 1.
+*   **`"relu"`**: The most popular for hidden layers. Fast and efficient.
+*   **`"sigmoid"`**: Compresses values between 0 and 1. Ideal for the output layer in **binary classification**.
+*   **`"softmax"`**: Converts outputs into a probability vector that sums to 1. Ideal for the output layer in **multiclass classification**.
+*   **`"tanh"`**: Compresses values between -1 and 1.
 
 ---
 ## Guía de compilación
-### Optimizador (`optimizer`)
-El algoritmo que actualiza los pesos de la red para minimizar la pérdida.
-*   **`"adam"`**: El mejor para empezar. Es eficiente y funciona bien en la mayoría de los casos.
-*   **`"rmsprop"`**: Bueno para modelos recurrentes (RNNs).
-*   **`"sgd"`**: Descenso de Gradiente Estocástico. Clásico, pero a menudo más lento para converger.
+## Compilation Guide
+### Optimizer (`optimizer`)
+The algorithm that updates the network weights to minimize the loss.
+*   **`"adam"`**: The best to start with. Efficient and works well in most cases.
+*   **`"rmsprop"`**: Good for recurrent models (RNNs).
+*   **`"sgd"`**: Stochastic Gradient Descent. Classic, but often slower to converge.
 
-### Función de Pérdida (`loss`)
-Mide qué tan acertado es el modelo durante el entrenamiento. La elección es CRÍTICA y depende de tu problema.
-*   **Clasificación Binaria (2 clases):**
+### Loss Function (`loss`)
+Measures how accurate the model is during training. The choice is CRITICAL and depends on your problem.
+*   **Binary Classification (2 classes):**
     *   `"binary_crossentropy"`
-*   **Clasificación Multiclase (>2 clases):**
-    *   `"categorical_crossentropy"`: Si tus etiquetas están en formato *one-hot* (ej: `[0, 1, 0, 0]`).
-    *   `"sparse_categorical_crossentropy"`: Si tus etiquetas son enteros (ej: `1`). **(Más común)**.
-*   **Regresión (predecir un valor numérico):**
-    *   `"mean_squared_error"` (MSE) o `"mse"`
+*   **Multiclass Classification (>2 classes):**
+    *   `"categorical_crossentropy"`: If your labels are in *one-hot* format (e.g., `[0, 1, 0, 0]`).
+    *   `"sparse_categorical_crossentropy"`: If your labels are integers (e.g., `1`). **(Most common)**.
+*   **Regression (predicting a numeric value):**
+    *   `"mean_squared_error"` (MSE) or `"mse"`
 
-### Métricas (`metrics`)
-Funciones que se usan para monitorear el rendimiento del modelo.
-*   **`["accuracy"]`**: La más común para clasificación. Mide el porcentaje de predicciones correctas.
-*   **`["mae"]`**: Error Absoluto Medio. Útil para regresión.
+### Metrics (`metrics`)
+Functions used to monitor model performance.
+*   **`["accuracy"]`**: The most common for classification. Measures the percentage of correct predictions.
+*   **`["mae"]`**: Mean Absolute Error. Useful for regression.
 
 ---
